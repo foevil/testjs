@@ -123,6 +123,7 @@ function runTelegramBot() {
         logger.info('Telegram bot started with webhook');
     }).catch((e) => {
         logger.error(`Failed to set webhook: ${e.message}`);
+        logger.error(`Full error: ${JSON.stringify(e)}`);
         if (fs.existsSync(LOCK_FILE)) {
             fs.unlinkSync(LOCK_FILE);
         }
