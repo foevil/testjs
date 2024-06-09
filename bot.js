@@ -24,6 +24,8 @@ if (!fs.existsSync(imagesDir)) {
 
 const bot = new Telegraf(TELEGRAM_TOKEN);
 
+let isBotRunning = false;
+
 bot.on('photo', async (ctx) => {
     const chatId = ctx.message.chat.id;
     logger.info(`Received message in chat ${chatId}`);
@@ -117,6 +119,7 @@ function runTelegramBot() {
     const webhookUrl = `${WEBHOOK_URL}/bot${TELEGRAM_TOKEN}`;
     bot.telegram.setWebhook(webhookUrl).then(() => {
         app.use(bot.webhookCallback(`/bot${TELEGRAM_TOKEN}`));
+        isBotRunning = true;
         logger.info('Telegram bot started with webhook');
     }).catch((e) => {
         logger.error(`Failed to set webhook: ${e.message}`);
@@ -130,7 +133,9 @@ runExpress();
 runTelegramBot();
 
 process.on('SIGINT', () => {
-    bot.stop('SIGINT');
+    if (isBotRunning) {
+        bot.stop('SIGINT');
+    }
     if (fs.existsSync(LOCK_FILE)) {
         fs.unlinkSync(LOCK_FILE);
     }
@@ -138,7 +143,9 @@ process.on('SIGINT', () => {
 });
 
 process.on('SIGTERM', () => {
-    bot.stop('SIGTERM');
+    if (isBotRunning) {
+        bot.stop('SIGTERM');
+    }
     if (fs.existsSync(LOCK_FILE)) {
         fs.unlinkSync(LOCK_FILE);
     }
